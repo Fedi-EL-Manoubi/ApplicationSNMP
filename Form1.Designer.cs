@@ -28,17 +28,17 @@
         /// </summary>
         private void InitializeComponent()
         {
-            textBox1 = new TextBox();
+            textBoxIPAddress = new TextBox();
             button1 = new Button();
+            textBoxCommunity = new TextBox();
             SuspendLayout();
             // 
-            // textBox1
+            // textBoxIPAddress
             // 
-            textBox1.Location = new Point(323, 140);
-            textBox1.Name = "textBox1";
-            textBox1.Size = new Size(149, 23);
-            textBox1.TabIndex = 3;
-            textBox1.TextChanged += textBox1_TextChanged;
+            textBoxIPAddress.Location = new Point(224, 140);
+            textBoxIPAddress.Name = "textBoxIPAddress";
+            textBoxIPAddress.Size = new Size(149, 23);
+            textBoxIPAddress.TabIndex = 3;
             // 
             // button1
             // 
@@ -48,14 +48,23 @@
             button1.TabIndex = 4;
             button1.Text = "Obtenir Infos";
             button1.UseVisualStyleBackColor = true;
+
+            // 
+            // textBoxCommunity
+            // 
+            textBoxCommunity.Location = new Point(407, 140);
+            textBoxCommunity.Name = "textBoxCommunity";
+            textBoxCommunity.Size = new Size(149, 23);
+            textBoxCommunity.TabIndex = 5;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(textBoxCommunity);
             Controls.Add(button1);
-            Controls.Add(textBox1);
+            Controls.Add(textBoxIPAddress);
             Name = "Form1";
             Text = "Form1";
             ResumeLayout(false);
@@ -63,7 +72,8 @@
         }
 
         #endregion
-        private TextBox textBox1;
+        private TextBox textBoxIPAddress;
         private Button button1;
+        private TextBox textBoxCommunity;
     }
 }
