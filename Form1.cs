@@ -1,8 +1,8 @@
 using Lextm.SharpSnmpLib;
 using Lextm.SharpSnmpLib.Messaging;
+using System.Net;
 using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -64,7 +64,7 @@ namespace ApplicationSNMP
             var variables = new List<Variable>();
 
             // Utilisation de Messenger.Walk pour parcourir l'arborescence SNMP
-            var walker = Messenger.Walk(VersionCode.V2, target, new OctetString(community), snmpOid);
+            var walker = Messenger.Walk(VersionCode.V2, target, new OctetString(community), new List<ObjectIdentifier> { snmpOid });
 
             foreach (Variable variable in walker)
             {
