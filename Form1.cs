@@ -16,7 +16,7 @@ namespace ApplicationSNMP
             InitializeComponent();
         }
 
-        private async void button1_Click(object sender, EventArgs e)
+        private async void button1_Click_1(object sender, EventArgs e)
         {
             string ipAddress = textBoxIPAddress.Text;
             string community = textBoxCommunity.Text;
@@ -28,8 +28,8 @@ namespace ApplicationSNMP
                 return;
             }
 
-            // OID pour l'information SNMP actuelle, à remplacer par l'OID approprié
-            var snmpOid = new ObjectIdentifier("1.3.6.1.2.1.1.5.0");
+            // OID pour l'information SNMP actuelle,OID dahua via doc internet
+            var snmpOid = new ObjectIdentifier(" 1.3.6.1.4.1.1004849.2.10.3");
 
             try
             {
@@ -54,39 +54,45 @@ namespace ApplicationSNMP
                 MessageBox.Show($"Erreur lors de la récupération des informations SNMP : {ex.Message}");
             }
         }
-
         private IList<Variable> QuerySnmp(string ipAddress, string community, ObjectIdentifier snmpOid)
         {
             var agentIpAddress = IPAddress.Parse(ipAddress);
             var port = 161; // Port SNMP par défaut
             var target = new IPEndPoint(agentIpAddress, port);
 
-            var variables = new List<Variable>();
+            //  de Messenger.Walk pour parcourir l'arborescence SNMP
+            var rowCount = Messenger.Walk(VersionCode.V2, target, new OctetString(community), snmpOid, new List<Variable>(), 5000, WalkMode.WithinSubtree);
 
-            // Utilisation de Messenger.Walk pour parcourir l'arborescence SNMP
-            var walker = Messenger.Walk(VersionCode.V2, target, new OctetString(community), new List<ObjectIdentifier> { snmpOid });
-
-            foreach (Variable variable in walker)
+            if (rowCount > 0)
             {
-                variables.Add(variable);
-            }
+                MessageBox.Show($"Nombre de lignes dans la table SNMP : {rowCount}");
 
-            if (variables.Any())
-            {
-                // Traitez les variables individuelles dans la liste
-                foreach (var variable in variables)
+                //   Messenger.Get  obtenir des variables spécifiques
+                var variables = Messenger.Get(VersionCode.V2, target, new OctetString(community), new List<Variable> { new Variable(snmpOid) }, 5000);
+
+                if (variables != null && variables.Any())
                 {
-                    MessageBox.Show($"La valeur de l'OID {variable.Id} est : {variable.Data}");
-                }
+                    // Traitez les variables individuelles dans la liste
+                    foreach (var variable in variables)
+                    {
+                        MessageBox.Show($"La valeur de l'OID {variable.Id} est : {variable.Data}");
+                    }
 
-                return variables;
+                    return variables;
+                }
+                else
+                {
+                    MessageBox.Show("Aucune réponse SNMP reçue.");
+                    return null;
+                }
             }
             else
             {
-                MessageBox.Show("Aucune réponse SNMP reçue.");
+                MessageBox.Show("La marche SNMP n'a pas retourné de résultats.");
                 return null;
             }
         }
-    }
 
+
+    }
 }
