@@ -24,7 +24,7 @@ namespace ApplicationSNMP
             // Validation des entrées
             if (string.IsNullOrWhiteSpace(ipAddress) || string.IsNullOrWhiteSpace(community))
             {
-                MessageBox.Show("Veuillez fournir une adresse IP et une communauté SNMP valides.");
+                MessageBox.Show("Veuillez fournir une adresse IP et une communauté SNMP validess s'il vous plait .");
                 return;
             }
 
@@ -41,17 +41,17 @@ namespace ApplicationSNMP
                     // Traitez les variables individuelles dans la liste
                     foreach (var variable in result)
                     {
-                        MessageBox.Show($"La valeur de l'OID {variable.Id} est : {variable.Data}");
+                        MessageBox.Show($"La valeur de l'OID {variable.Id} est : {variable.Data}"); 
                     }
                 }
                 else
                 {
                     MessageBox.Show("Aucune réponse SNMP reçue.");
-                }
+                } 
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Erreur lors de la récupération des informations SNMP : {ex.Message}");
+                MessageBox.Show($"Erreur lors de la récupération des informations SNMP :( : {ex.Message}");
             }
         }
         private IList<Variable> QuerySnmp(string ipAddress, string community, ObjectIdentifier snmpOid)
@@ -72,7 +72,7 @@ namespace ApplicationSNMP
 
                 if (variables != null && variables.Any())
                 {
-                    // Traitez les variables individuelles dans la liste
+                    // Traitez les variables individuelles dans la liste ; message box renvoi résultat box.
                     foreach (var variable in variables)
                     {
                         MessageBox.Show($"La valeur de l'OID {variable.Id} est : {variable.Data}");
@@ -92,7 +92,5 @@ namespace ApplicationSNMP
                 return null;
             }
         }
-
-
     }
 }
