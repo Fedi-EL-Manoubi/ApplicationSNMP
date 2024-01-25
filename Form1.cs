@@ -1,19 +1,25 @@
+using System;
 using Lextm.SharpSnmpLib;
 using Lextm.SharpSnmpLib.Messaging;
+using log4net;
 using System.Net;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ApplicationSNMP
 {
     public partial class Form1 : Form
     {
+        // Déclaration du logger en tant que membre de classe
+        private static readonly ILog log = LogManager.GetLogger(typeof(Form1));
+
         public Form1()
         {
             InitializeComponent();
+
+            // Initialisation de log4net
+            log4net.Config.XmlConfigurator.Configure(new System.IO.FileInfo("log4net.config"));
         }
 
         private async void button1_Click_1(object sender, EventArgs e)
@@ -29,7 +35,8 @@ namespace ApplicationSNMP
             }
 
             // OID pour l'information SNMP actuelle,OID dahua via doc internet
-            var snmpOid = new ObjectIdentifier(" 1.3.6.1.4.1.1004849.2.10.3");
+            var snmpOid = new ObjectIdentifier("1.3.6.1.4.1.1004849.2.10.2");
+                                                 
 
             try
             {
@@ -60,37 +67,69 @@ namespace ApplicationSNMP
             var port = 161; // Port SNMP par défaut
             var target = new IPEndPoint(agentIpAddress, port);
 
-            //  de Messenger.Walk pour parcourir l'arborescence SNMP
-            var rowCount = Messenger.Walk(VersionCode.V2, target, new OctetString(community), snmpOid, new List<Variable>(), 5000, WalkMode.WithinSubtree);
-
-            if (rowCount > 0)
+            try
             {
-                MessageBox.Show($"Nombre de lignes dans la table SNMP : {rowCount}");
+                // Utilisation de Messenger.Walk pour parcourir l'arborescence SNMP
+                var rowCount = Messenger.Walk(VersionCode.V2, target, new OctetString(community), snmpOid, new List<Variable>(), 5000, WalkMode.WithinSubtree);
 
-                //   Messenger.Get  obtenir des variables spécifiques
-                var variables = Messenger.Get(VersionCode.V2, target, new OctetString(community), new List<Variable> { new Variable(snmpOid) }, 5000);
+                // Log du nombre de lignes dans la table SNMP
+                log.Info($"Nombre de lignes dans la table SNMP : {rowCount}");
 
-                if (variables != null && variables.Any())
+                if (rowCount > 0)
                 {
-                    // Traitez les variables individuelles dans la liste ; message box renvoi résultat box.
-                    foreach (var variable in variables)
-                    {
-                        MessageBox.Show($"La valeur de l'OID {variable.Id} est : {variable.Data}");
-                    }
+                    // Messenger.Get pour obtenir des variables spécifiques
+                    var variables = Messenger.Get(VersionCode.V2, target, new OctetString(community), new List<Variable> { new Variable(snmpOid) }, 5000);
 
-                    return variables;
+                    if (variables != null && variables.Any())
+                    {
+                        // Log des variables individuelles
+                        foreach (var variable in variables)
+                        {
+                            log.Info($"La valeur de l'OID {variable.Id} est : {variable.Data}");
+                        }
+
+                        return variables;
+                    }
+                    else
+                    {
+                        // Log si aucune réponse SNMP reçue
+                        log.Warn("Aucune réponse SNMP reçue.");
+                        return null;
+                    }
                 }
                 else
                 {
-                    MessageBox.Show("Aucune réponse SNMP reçue.");
+                    // Log  SNMP n'a pas retourné de résultats
+                    log.Warn("La marche SNMP n'a pas retourné de résultats.");
                     return null;
                 }
             }
-            else
+            catch (Lextm.SharpSnmpLib.Messaging.TimeoutException)
             {
-                MessageBox.Show("La marche SNMP n'a pas retourné de résultats.");
+                // Log si la demande a expiré
+                log.Error("La demande SNMP a expiré.");
+
+                // Affichez une MessageBox indiquant que le délai a expiré
+                MessageBox.Show("La demande SNMP a expiré. Vérifiez les informations saisies et réessayez.", "Erreur de délai", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
                 return null;
             }
+            catch (Exception ex) //Récupère l'info du délai Time qui est dépassée est affiche le box suivante:
+            {
+                // Log des erreurs
+                log.Error($"Erreur lors de la récupération des informations SNMP : {ex.Message}");
+
+                // Affichez une MessageBox pour d'autres erreurs (ici la box remonte lors d'une erreur ip ou communauté fausse ou introuvable).
+                MessageBox.Show($"Une erreur s'est produite lors de la récupération des informations SNMP : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                return null;
+            }
+            finally
+            {
+                // Log de fin de la méthode
+                log.Info($"QuerySnmp ended for IP: {ipAddress}, Community: {community}, OID: {snmpOid}");
+            }
         }
+
     }
 }

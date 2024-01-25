@@ -66,7 +66,7 @@
             Controls.Add(button1);
             Controls.Add(textBoxIPAddress);
             Name = "Form1";
-            Text = "Form1";
+            Text = "SNMP Info";
             ResumeLayout(false);
             PerformLayout();
         }
