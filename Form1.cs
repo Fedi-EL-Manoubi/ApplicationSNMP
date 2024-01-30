@@ -108,7 +108,7 @@ namespace ApplicationSNMP
             }
             catch (Lextm.SharpSnmpLib.Messaging.TimeoutException)
             {
-                // Log si la demande a expiré
+                // Log si la demande a expiré ou oid pas valide 
                 log.Error("La demande SNMP a expiré.");
 
                 // Affichez une MessageBox indiquant que le délai a expiré de la session. 
