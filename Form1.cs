@@ -22,10 +22,10 @@ namespace ApplicationSNMP
             log4net.Config.XmlConfigurator.Configure(new System.IO.FileInfo("log4net.config"));
         }
 
-        private async void button1_Click_1(object sender, EventArgs e)
+        private async void Button1_Click_1(object sender, EventArgs e)
         {
-            string ipAddress = textBoxIPAddress.Text;
-            string community = textBoxCommunity.Text;
+            string ipAddress = TextBoxIPAddress.Text;
+            string community = TextBoxCommunity.Text;
 
             // Validation des entrées
             if (string.IsNullOrWhiteSpace(ipAddress) || string.IsNullOrWhiteSpace(community))
@@ -35,8 +35,9 @@ namespace ApplicationSNMP
             }
 
             // OID pour l'information SNMP actuelle,OID dahua via doc internet
-            var snmpOid = new ObjectIdentifier("1.3.6.1.4.1.1004849.2.10.2");
-                                                 
+            var snmpOid = new ObjectIdentifier(" 1.3.6.1.4.1.1004849.2.11 ");
+
+
 
             try
             {
@@ -61,16 +62,17 @@ namespace ApplicationSNMP
                 MessageBox.Show($"Erreur lors de la récupération des informations SNMP :( : {ex.Message}");
             }
         }
-        private IList<Variable> QuerySnmp(string ipAddress, string community, ObjectIdentifier snmpOid)
+        private static IList<Variable> QuerySnmp(string ipAddress, string community, ObjectIdentifier snmpOid)
         {
             var agentIpAddress = IPAddress.Parse(ipAddress);
-            var port = 161; // Port SNMP par défaut
+            var port = 451; // Port SNMP par défaut
             var target = new IPEndPoint(agentIpAddress, port);
+            
 
             try
             {
                 // Utilisation de Messenger.Walk pour parcourir l'arborescence SNMP
-                var rowCount = Messenger.Walk(VersionCode.V2, target, new OctetString(community), snmpOid, new List<Variable>(), 5000, WalkMode.WithinSubtree);
+                var rowCount = Messenger.Walk(VersionCode.V2, target, new OctetString(community), snmpOid, new List<Variable>(), 25000, WalkMode.WithinSubtree);
 
                 // Log du nombre de lignes dans la table SNMP
                 log.Info($"Nombre de lignes dans la table SNMP : {rowCount}");
@@ -78,7 +80,7 @@ namespace ApplicationSNMP
                 if (rowCount > 0)
                 {
                     // Messenger.Get pour obtenir des variables spécifiques
-                    var variables = Messenger.Get(VersionCode.V2, target, new OctetString(community), new List<Variable> { new Variable(snmpOid) }, 5000);
+                    var variables = Messenger.Get(VersionCode.V2, target, new OctetString(community), new List<Variable> { new Variable(snmpOid) }, 25000);
 
                     if (variables != null && variables.Any())
                     {
@@ -92,10 +94,10 @@ namespace ApplicationSNMP
                     }
                     else
                     {
-                        // Log si aucune réponse SNMP reçue
+                        // Log si aucune réponse SNMP reçue ou peut etre du a u OID incomprensible de l'appareil (nvr;camera...)
                         log.Warn("Aucune réponse SNMP reçue.");
                         return null;
-                    }
+                    }           
                 }
                 else
                 {
@@ -109,7 +111,7 @@ namespace ApplicationSNMP
                 // Log si la demande a expiré
                 log.Error("La demande SNMP a expiré.");
 
-                // Affichez une MessageBox indiquant que le délai a expiré
+                // Affichez une MessageBox indiquant que le délai a expiré de la session. 
                 MessageBox.Show("La demande SNMP a expiré. Vérifiez les informations saisies et réessayez.", "Erreur de délai", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                 return null;

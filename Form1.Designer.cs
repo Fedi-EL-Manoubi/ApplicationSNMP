@@ -28,17 +28,17 @@
         /// </summary>
         private void InitializeComponent()
         {
-            textBoxIPAddress = new TextBox();
+            TextBoxIPAddress = new TextBox();
             button1 = new Button();
-            textBoxCommunity = new TextBox();
+            TextBoxCommunity = new TextBox();
             SuspendLayout();
             // 
-            // textBoxIPAddress
+            // TextBoxIPAddress
             // 
-            textBoxIPAddress.Location = new Point(224, 140);
-            textBoxIPAddress.Name = "textBoxIPAddress";
-            textBoxIPAddress.Size = new Size(149, 23);
-            textBoxIPAddress.TabIndex = 3;
+            TextBoxIPAddress.Location = new Point(224, 140);
+            TextBoxIPAddress.Name = "TextBoxIPAddress";
+            TextBoxIPAddress.Size = new Size(149, 23);
+            TextBoxIPAddress.TabIndex = 3;
             // 
             // button1
             // 
@@ -48,23 +48,23 @@
             button1.TabIndex = 4;
             button1.Text = "Obtenir Infos";
             button1.UseVisualStyleBackColor = true;
-            button1.Click += button1_Click_1;
+            button1.Click += Button1_Click_1;
             // 
-            // textBoxCommunity
+            // TextBoxCommunity
             // 
-            textBoxCommunity.Location = new Point(407, 140);
-            textBoxCommunity.Name = "textBoxCommunity";
-            textBoxCommunity.Size = new Size(149, 23);
-            textBoxCommunity.TabIndex = 5;
+            TextBoxCommunity.Location = new Point(407, 140);
+            TextBoxCommunity.Name = "TextBoxCommunity";
+            TextBoxCommunity.Size = new Size(149, 23);
+            TextBoxCommunity.TabIndex = 5;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
-            Controls.Add(textBoxCommunity);
+            Controls.Add(TextBoxCommunity);
             Controls.Add(button1);
-            Controls.Add(textBoxIPAddress);
+            Controls.Add(TextBoxIPAddress);
             Name = "Form1";
             Text = "SNMP Info";
             ResumeLayout(false);
@@ -72,8 +72,8 @@
         }
 
         #endregion
-        private TextBox textBoxIPAddress;
+        private TextBox TextBoxIPAddress;
         private Button button1;
-        private TextBox textBoxCommunity;
+        private TextBox TextBoxCommunity;
     }
 }
