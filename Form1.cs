@@ -137,6 +137,6 @@ namespace ApplicationSNMP
 
     }
 }
-
+// voir ce qu'il ce passe lors de la recupérationd des info ps: ce qui ne va pas c'est la récuperation de information par exemple jenvoie une requete uptime le nvr recois bien l reponds en envoyent la question mes le programme dit au
 
 // Modifier la methode de récupération d'info snmp lors de la recup info du nvr vers le programme lors de l'affichage.s
