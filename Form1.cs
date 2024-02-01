@@ -137,3 +137,6 @@ namespace ApplicationSNMP
 
     }
 }
+
+
+// Modifier la methode de récupération d'info snmp lors de la recup info du nvr vers le programme lors de l'affichage.s
