@@ -6,6 +6,7 @@ using System.Net;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using System.Runtime.CompilerServices;
 
 namespace ApplicationSNMP
 {
@@ -35,7 +36,7 @@ namespace ApplicationSNMP
             }
 
             // OID pour l'information SNMP actuelle,OID dahua via doc internet
-            var snmpOid = new ObjectIdentifier(" 1.3.6.1.4.1.1004849.2.11 ");
+            var snmpOid = new ObjectIdentifier(" 1.3.6.1.4.1.1004849.2.1.2.4.0 ");
 
 
 
@@ -65,10 +66,10 @@ namespace ApplicationSNMP
         private static IList<Variable> QuerySnmp(string ipAddress, string community, ObjectIdentifier snmpOid)
         {
             var agentIpAddress = IPAddress.Parse(ipAddress);
-            var port = 451; // Port SNMP par défaut
+            var port = 161; // Port SNMP par défaut
             var target = new IPEndPoint(agentIpAddress, port);
             
-
+            
             try
             {
                 // Utilisation de Messenger.Walk pour parcourir l'arborescence SNMP
@@ -97,6 +98,7 @@ namespace ApplicationSNMP
                         // Log si aucune réponse SNMP reçue ou peut etre du a u OID incomprensible de l'appareil (nvr;camera...)
                         log.Warn("Aucune réponse SNMP reçue.");
                         return null;
+                        
                     }           
                 }
                 else
@@ -113,7 +115,7 @@ namespace ApplicationSNMP
 
                 // Affichez une MessageBox indiquant que le délai a expiré de la session. 
                 MessageBox.Show("La demande SNMP a expiré. Vérifiez les informations saisies et réessayez.", "Erreur de délai", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
+                        
                 return null;
             }
             catch (Exception ex) //Récupère l'info du délai Time qui est dépassée est affiche le box suivante:
