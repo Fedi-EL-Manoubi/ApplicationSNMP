@@ -23,6 +23,56 @@ namespace ApplicationSNMP
             log4net.Config.XmlConfigurator.Configure(new System.IO.FileInfo("log4net.config"));
         }
 
+        private static IList<Variable>? QuerySnmp(string ipAddress, string community, ObjectIdentifier snmpOid)
+        {
+            var agentIpAddress = IPAddress.Parse(ipAddress);
+            var port = 161; // Port SNMP par défaut
+            var target = new IPEndPoint(agentIpAddress, port);
+
+            try
+            {
+                // Utilisation de Messenger.Get pour obtenir des variables spécifiques
+                var variables = Messenger.Get(VersionCode.V2, target, new OctetString(community), new List<Variable> { new(snmpOid) }, 25000);
+
+                if (variables != null && variables.Any())
+                {
+                    // Retourner les informations récupérées
+                    return variables;
+                }
+                else
+                {
+                    // Log si aucune réponse SNMP reçue ou peut-être dû à un OID incompréhensible de l'appareil (nvr;camera...)
+                    log.Warn("Aucune réponse SNMP reçue.");
+                    return null;
+                }
+            }
+            catch (Lextm.SharpSnmpLib.Messaging.TimeoutException)
+            {
+                // Log si la demande a expiré ou l'OID n'est pas valide
+                log.Error("La demande SNMP a expiré.");
+
+                // Affichez une MessageBox indiquant que le délai a expiré de la session.
+                MessageBox.Show("La demande SNMP a expiré. Vérifiez les informations saisies et réessayez.", "Erreur de délai", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                return null;
+            }
+            catch (Exception ex) // Récupère l'info du délai Time qui est dépassée est affiche le box suivante:
+            {
+                // Log des erreurs
+                log.Error($"Erreur lors de la récupération des informations SNMP : {ex.Message}");
+
+                // Affichez une MessageBox pour d'autres erreurs (ici la box remonte lors d'une erreur IP ou communauté fausse ou introuvable).
+                MessageBox.Show($"Une erreur s'est produite lors de la récupération des informations SNMP : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                return null;
+            }
+            finally
+            {
+                // Log de fin de la méthode
+                log.Info($"QuerySnmp ended for IP: {ipAddress}, Community: {community}, OID: {snmpOid}");
+            }
+        }
+
         private async void Button1_Click_1(object sender, EventArgs e)
         {
             string ipAddress = TextBoxIPAddress.Text;
@@ -36,9 +86,7 @@ namespace ApplicationSNMP
             }
 
             // OID pour l'information SNMP actuelle,OID dahua via doc internet
-            var snmpOid = new ObjectIdentifier(" 1.3.6.1.4.1.1004849.2.1.2.4.0 ");
-
-
+            var snmpOid = new ObjectIdentifier(".1.3.6.1.4.1.1004849.2.1.6.0");
 
             try
             {
@@ -50,90 +98,21 @@ namespace ApplicationSNMP
                     // Traitez les variables individuelles dans la liste
                     foreach (var variable in result)
                     {
-                        MessageBox.Show($"La valeur de l'OID {variable.Id} est : {variable.Data}"); 
+                        MessageBox.Show($"La valeur de l'OID {variable.Id} est : {variable.Data}");
                     }
                 }
                 else
                 {
                     MessageBox.Show("Aucune réponse SNMP reçue.");
-                } 
+                }
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Erreur lors de la récupération des informations SNMP :( : {ex.Message}");
             }
         }
-        private static IList<Variable> QuerySnmp(string ipAddress, string community, ObjectIdentifier snmpOid)
-        {
-            var agentIpAddress = IPAddress.Parse(ipAddress);
-            var port = 161; // Port SNMP par défaut
-            var target = new IPEndPoint(agentIpAddress, port);
-            
-            
-            try
-            {
-                // Utilisation de Messenger.Walk pour parcourir l'arborescence SNMP
-                var rowCount = Messenger.Walk(VersionCode.V2, target, new OctetString(community), snmpOid, new List<Variable>(), 25000, WalkMode.WithinSubtree);
 
-                // Log du nombre de lignes dans la table SNMP
-                log.Info($"Nombre de lignes dans la table SNMP : {rowCount}");
 
-                if (rowCount > 0)
-                {
-                    // Messenger.Get pour obtenir des variables spécifiques
-                    var variables = Messenger.Get(VersionCode.V2, target, new OctetString(community), new List<Variable> { new Variable(snmpOid) }, 25000);
-
-                    if (variables != null && variables.Any())
-                    {
-                        // Log des variables individuelles
-                        foreach (var variable in variables)
-                        {
-                            log.Info($"La valeur de l'OID {variable.Id} est : {variable.Data}");
-                        }
-
-                        return variables;
-                    }
-                    else
-                    {
-                        // Log si aucune réponse SNMP reçue ou peut etre du a u OID incomprensible de l'appareil (nvr;camera...)
-                        log.Warn("Aucune réponse SNMP reçue.");
-                        return null;
-                        
-                    }           
-                }
-                else
-                {
-                    // Log  SNMP n'a pas retourné de résultats
-                    log.Warn("La marche SNMP n'a pas retourné de résultats.");
-                    return null;
-                }
-            }
-            catch (Lextm.SharpSnmpLib.Messaging.TimeoutException)
-            {
-                // Log si la demande a expiré ou oid pas valide 
-                log.Error("La demande SNMP a expiré.");
-
-                // Affichez une MessageBox indiquant que le délai a expiré de la session. 
-                MessageBox.Show("La demande SNMP a expiré. Vérifiez les informations saisies et réessayez.", "Erreur de délai", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        
-                return null;
-            }
-            catch (Exception ex) //Récupère l'info du délai Time qui est dépassée est affiche le box suivante:
-            {
-                // Log des erreurs
-                log.Error($"Erreur lors de la récupération des informations SNMP : {ex.Message}");
-
-                // Affichez une MessageBox pour d'autres erreurs (ici la box remonte lors d'une erreur ip ou communauté fausse ou introuvable).
-                MessageBox.Show($"Une erreur s'est produite lors de la récupération des informations SNMP : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-                return null;
-            }
-            finally
-            {
-                // Log de fin de la méthode
-                log.Info($"QuerySnmp ended for IP: {ipAddress}, Community: {community}, OID: {snmpOid}");
-            }
-        }
 
     }
 }
