@@ -8,21 +8,43 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Runtime.CompilerServices;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.InteropServices.JavaScript;
 
 namespace ApplicationSNMP
 {
     public partial class Form1 : Form
     {
+        private Rectangle orignalFormSize;
+
         // Déclaration du logger en tant que membre de classe
         private static readonly ILog log = LogManager.GetLogger(typeof(Form1));
 
         public Form1()
         {
+            //orignalFormSize = this.Size;
+            //OriginalRectangle = new Rectangle(button1.Location.X,)
             InitializeComponent();
 
             // Initialisation de log4net
+
             log4net.Config.XmlConfigurator.Configure(new System.IO.FileInfo("log4net.config"));
         }
+        private void ResizeControl(Rectangle r, Control c)
+        {
+            float xRatio = (float)(this.Width) / (float)(orignalFormSize.Width);
+            float yRatio = (float)(this.Height) / (float)(orignalFormSize.Height);
+
+            int newX = (int)(r.Width * xRatio);
+            int newY = (int)(r.Height * yRatio); 
+
+            int newWidth = (int)(r.Width * xRatio);
+            int newHeight = (int)(r.Height * yRatio);
+
+            c.Location = new Point(newX, newY);
+            c.Size = new Size(newWidth, newHeight);
+            
+        }
+
 
         private static IList<Variable>? QuerySnmp(string ipAddress, string community, ObjectIdentifier snmpOid)
         {
@@ -69,7 +91,7 @@ namespace ApplicationSNMP
             }
             finally
             {
-                // Log de fin de la méthode 
+                // Log de fin de la méthode envoie vers fichiers logs.
                 log.Info($"QuerySnmp ended for IP: {ipAddress}, Community: {community}, OID: {snmpOid}");
             }
         }
