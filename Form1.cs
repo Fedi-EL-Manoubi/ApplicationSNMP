@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using System.Runtime.CompilerServices;
+using System.Reflection.Metadata.Ecma335;
 
 namespace ApplicationSNMP
 {
@@ -32,18 +33,18 @@ namespace ApplicationSNMP
             try
             {
                 // Utilisation de Messenger.Get pour obtenir des variables spécifiques
-                var variables = Messenger.Get(VersionCode.V2, target, new OctetString(community), new List<Variable> { new(snmpOid) }, 25000);
+                var variables = Messenger.Get(VersionCode.V2, target, new OctetString(community), new List<Variable> { new(snmpOid) }, 5000);
 
                 if (variables != null && variables.Any())
                 {
-                    // Retourner les informations récupérées
+                    // Retourner les informations récupérées, peut planter si l'information get (oid) n'est pas valide a regenerer la solution.
                     return variables;
                 }
                 else
                 {
                     // Log si aucune réponse SNMP reçue ou peut-être dû à un OID incompréhensible de l'appareil (nvr;camera...)
                     log.Warn("Aucune réponse SNMP reçue.");
-                    return null;
+                    return null;    
                 }
             }
             catch (Lextm.SharpSnmpLib.Messaging.TimeoutException)
@@ -68,7 +69,7 @@ namespace ApplicationSNMP
             }
             finally
             {
-                // Log de fin de la méthode
+                // Log de fin de la méthode 
                 log.Info($"QuerySnmp ended for IP: {ipAddress}, Community: {community}, OID: {snmpOid}");
             }
         }
@@ -78,15 +79,17 @@ namespace ApplicationSNMP
             string ipAddress = TextBoxIPAddress.Text;
             string community = TextBoxCommunity.Text;
 
+
             // Validation des entrées
             if (string.IsNullOrWhiteSpace(ipAddress) || string.IsNullOrWhiteSpace(community))
             {
-                MessageBox.Show("Veuillez fournir une adresse IP et une communauté SNMP validess s'il vous plait .");
+                MessageBox.Show("Veuillez fournir une adresse IP et une communauté SNMP valides s'il vous plait .");
                 return;
             }
 
             // OID pour l'information SNMP actuelle,OID dahua via doc internet
-            var snmpOid = new ObjectIdentifier(".1.3.6.1.4.1.1004849.2.1.6.0");
+            var snmpOid = new ObjectIdentifier(".1.3.6.1.4.1.1004849.2.1.2.6.0");
+
 
             try
             {
@@ -111,7 +114,6 @@ namespace ApplicationSNMP
                 MessageBox.Show($"Erreur lors de la récupération des informations SNMP :( : {ex.Message}");
             }
         }
-
 
 
     }
