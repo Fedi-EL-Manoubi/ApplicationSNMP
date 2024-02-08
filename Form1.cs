@@ -6,14 +6,13 @@ using System.Net;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using System.Runtime.CompilerServices;
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.InteropServices.JavaScript;
 
 namespace ApplicationSNMP
 {
     public partial class Form1 : Form
     {
+
+
         private Rectangle orignalFormSize;
 
         // Déclaration du logger en tant que membre de classe
@@ -29,21 +28,22 @@ namespace ApplicationSNMP
 
             log4net.Config.XmlConfigurator.Configure(new System.IO.FileInfo("log4net.config"));
         }
-        private void ResizeControl(Rectangle r, Control c)
-        {
-            float xRatio = (float)(this.Width) / (float)(orignalFormSize.Width);
-            float yRatio = (float)(this.Height) / (float)(orignalFormSize.Height);
+        //private void ResizeControl(Rectangle r, Control c)
+        //{
+        //    float xRatio = (float)(this.Width) / (float)(orignalFormSize.Width);
+        //    float yRatio = (float)(this.Height) / (float)(orignalFormSize.Height);
 
-            int newX = (int)(r.Width * xRatio);
-            int newY = (int)(r.Height * yRatio); 
+        //    int newX = (int)(r.Width * xRatio);
+        //    int newY = (int)(r.Height * yRatio);
 
-            int newWidth = (int)(r.Width * xRatio);
-            int newHeight = (int)(r.Height * yRatio);
+        //    int newWidth = (int)(r.Width * xRatio);
+        //    int newHeight = (int)(r.Height * yRatio);
 
-            c.Location = new Point(newX, newY);
-            c.Size = new Size(newWidth, newHeight);
-            
-        }
+        //    c.Location = new Point(newX, newY);
+        //    c.Size = new Size(newWidth, newHeight);
+        // a supprimer ne fonctionne pas solution trouver / rensponsiviter modifier depuis le conception via les proprièter. 
+
+        //}
 
 
         private static IList<Variable>? QuerySnmp(string ipAddress, string community, ObjectIdentifier snmpOid)
@@ -64,9 +64,9 @@ namespace ApplicationSNMP
                 }
                 else
                 {
-                    // Log si aucune réponse SNMP reçue ou peut-être dû à un OID incompréhensible de l'appareil (nvr;camera...)
+                    //Log si aucune réponse SNMP reçue ou peut-être dû à un OID incompréhensible de l'appareil (nvr;camera...)
                     log.Warn("Aucune réponse SNMP reçue.");
-                    return null;    
+                    return null;
                 }
             }
             catch (Lextm.SharpSnmpLib.Messaging.TimeoutException)
@@ -136,10 +136,46 @@ namespace ApplicationSNMP
                 MessageBox.Show($"Erreur lors de la récupération des informations SNMP :( : {ex.Message}");
             }
         }
+        private void TextBoxOid_TextChanged(object sender, EventArgs e)
+        {
 
+        }
+
+        private void eXitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
+        private void UpdateFullScreenMenuItemText()
+        {
+            if (this.WindowState == FormWindowState.Maximized)
+            {
+                plaineÉcranToolStripMenuItem.Text = "Quitter le plein écran";
+            }
+            else
+            {
+                plaineÉcranToolStripMenuItem.Text = "Plein écran";
+            }
+        }
+
+        private void plaineÉcranToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (this.WindowState == FormWindowState.Maximized)
+            {
+                this.WindowState = FormWindowState.Normal; // Quitte le mode plein écran
+            }
+            else
+            {
+                this.WindowState = FormWindowState.Maximized; // Passe en mode plein écran
+            }
+            UpdateFullScreenMenuItemText(); // Met à jour le texte de l'élément de menu
+        }
 
     }
+
+
 }
+
 // voir ce qu'il ce passe lors de la recupérationd des info ps: ce qui ne va pas c'est la récuperation de information par exemple jenvoie une requete uptime le nvr recois bien l reponds en envoyent la question mes le programme dit au
 
 // Modifier la methode de récupération d'info snmp lors de la recup info du nvr vers le programme lors de l'affichage.s
