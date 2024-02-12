@@ -20,32 +20,18 @@ namespace ApplicationSNMP
 
         public Form1()
         {
-            //orignalFormSize = this.Size;
-            //OriginalRectangle = new Rectangle(button1.Location.X,)
             InitializeComponent();
 
             // Initialisation de log4net
-
             log4net.Config.XmlConfigurator.Configure(new System.IO.FileInfo("log4net.config"));
+
+            BoxOid1.DataSource = oidMappings;
+            BoxOid1.DisplayMember = "Name"; // Afficher les noms des OID dans la ComboBox
+            BoxOid1.ValueMember = "Oid"; // Utiliser les OID comme valeurs
+            BoxOid1.SelectedIndex = -1;
+
+            //BoxOid1.SelectedIndexChanged += BoxOid1_SelectedIndexChanged;
         }
-        //private void ResizeControl(Rectangle r, Control c)
-        //{
-        //    float xRatio = (float)(this.Width) / (float)(orignalFormSize.Width);
-        //    float yRatio = (float)(this.Height) / (float)(orignalFormSize.Height);
-
-        //    int newX = (int)(r.Width * xRatio);
-        //    int newY = (int)(r.Height * yRatio);
-
-        //    int newWidth = (int)(r.Width * xRatio);
-        //    int newHeight = (int)(r.Height * yRatio);
-
-        //    c.Location = new Point(newX, newY);
-        //    c.Size = new Size(newWidth, newHeight);
-        // a supprimer ne fonctionne pas solution trouver / rensponsiviter modifier depuis le conception via les proprièter. 
-
-        //}
-
-
         private static IList<Variable>? QuerySnmp(string ipAddress, string community, ObjectIdentifier snmpOid)
         {
             var agentIpAddress = IPAddress.Parse(ipAddress);
@@ -101,7 +87,6 @@ namespace ApplicationSNMP
             string ipAddress = TextBoxIPAddress.Text;
             string community = TextBoxCommunity.Text;
 
-
             // Validation des entrées
             if (string.IsNullOrWhiteSpace(ipAddress) || string.IsNullOrWhiteSpace(community))
             {
@@ -109,9 +94,18 @@ namespace ApplicationSNMP
                 return;
             }
 
-            // OID pour l'information SNMP actuelle,OID dahua via doc internet
-            var snmpOid = new ObjectIdentifier(".1.3.6.1.4.1.1004849.2.1.2.6.0");
+            // Récupérer l'OID sélectionné dans la ComboBox
+            string? selectedOid = BoxOid1.SelectedItem?.ToString();
 
+            // Vérifier si un OID a été sélectionné sinon 
+            if (string.IsNullOrEmpty(selectedOid))
+            {
+                MessageBox.Show("Veuillez sélectionner un OID dans la liste.");
+                return;
+            }
+
+            // Créer l'objet ObjectIdentifier à partir de l'OID sélectionné
+            var snmpOid = new ObjectIdentifier(selectedOid);
 
             try
             {
@@ -120,7 +114,7 @@ namespace ApplicationSNMP
 
                 if (result != null && result.Any())
                 {
-                    // Traitez les variables individuelles dans la liste
+                    // Traitez les variables individuelles dans la liste des ,
                     foreach (var variable in result)
                     {
                         MessageBox.Show($"La valeur de l'OID {variable.Id} est : {variable.Data}");
@@ -136,10 +130,47 @@ namespace ApplicationSNMP
                 MessageBox.Show($"Erreur lors de la récupération des informations SNMP :( : {ex.Message}");
             }
         }
-        private void TextBoxOid_TextChanged(object sender, EventArgs e)
-        {
 
+        public class OidMapping
+        {
+            public string Name { get; set; }
+            public string Oid { get; set; }
+
+            public OidMapping(string name, string oid)
+            {
+                Name = name;
+                Oid = oid;
+            }
         }
+
+        // Dans votre classe Form1   ComboBoxOid
+        private List<OidMapping> oidMappings = new List<OidMapping>
+{
+    new OidMapping("SysNameClass", "1.3.6.1.4.1.1004849.2.1.2.7.0"),
+    new OidMapping("UpTime", "1.3.6.1.4.1.1004849.2.1.6.0"),
+    new OidMapping("HardwareRevision", "1.3.6.1.4.1.1004849.2.1.1.2.0"),
+};
+
+
+        private void BoxOid1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string? selectedName = BoxOid1.SelectedItem?.ToString();
+
+            if (!string.IsNullOrEmpty(selectedName))
+            {
+                var mapping = oidMappings.FirstOrDefault(m => m.Name == selectedName);
+                if (mapping != null)
+                {
+                    string correspondingOid = mapping.Oid;
+                    // Utilisez cet OID comme requis
+                }
+                else
+                {
+                    MessageBox.Show("Nom d'OID inconnu. Veuillez sélectionner un autre nom.");
+                }
+            }
+        }
+
 
         private void eXitToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -170,10 +201,9 @@ namespace ApplicationSNMP
             }
             UpdateFullScreenMenuItemText(); // Met à jour le texte de l'élément de menu
         }
+        // Déclaration et initialisation de oidMappings avec quelques exemples
 
     }
-
-
 }
 
 // voir ce qu'il ce passe lors de la recupérationd des info ps: ce qui ne va pas c'est la récuperation de information par exemple jenvoie une requete uptime le nvr recois bien l reponds en envoyent la question mes le programme dit au

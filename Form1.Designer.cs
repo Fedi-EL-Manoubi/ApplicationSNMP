@@ -35,7 +35,6 @@ namespace ApplicationSNMP
             TextBoxCommunity = new TextBox();
             label1 = new Label();
             label2 = new Label();
-            TextBoxOid = new TextBox();
             LabelOid = new Label();
             eXitToolStripMenuItem = new ToolStripMenuItem();
             menuStrip1 = new MenuStrip();
@@ -43,6 +42,7 @@ namespace ApplicationSNMP
             testToolStripMenuItem = new ToolStripMenuItem();
             affichageToolStripMenuItem = new ToolStripMenuItem();
             plaineÉcranToolStripMenuItem = new ToolStripMenuItem();
+            BoxOid1 = new ComboBox();
             menuStrip1.SuspendLayout();
             SuspendLayout();
             // 
@@ -93,14 +93,6 @@ namespace ApplicationSNMP
             label2.TabIndex = 7;
             label2.Text = "Communauté";
             // 
-            // TextBoxOid
-            // 
-            TextBoxOid.Anchor = AnchorStyles.None;
-            TextBoxOid.Location = new Point(346, 206);
-            TextBoxOid.Name = "TextBoxOid";
-            TextBoxOid.Size = new Size(227, 23);
-            TextBoxOid.TabIndex = 8;
-            // 
             // LabelOid
             // 
             LabelOid.Anchor = AnchorStyles.None;
@@ -150,10 +142,20 @@ namespace ApplicationSNMP
             // plaineÉcranToolStripMenuItem
             // 
             plaineÉcranToolStripMenuItem.Name = "plaineÉcranToolStripMenuItem";
-            plaineÉcranToolStripMenuItem.Size = new Size(180, 22);
+            plaineÉcranToolStripMenuItem.Size = new Size(132, 22);
             plaineÉcranToolStripMenuItem.Text = "Plein écran";
             plaineÉcranToolStripMenuItem.TextAlign = ContentAlignment.MiddleLeft;
             plaineÉcranToolStripMenuItem.Click += plaineÉcranToolStripMenuItem_Click;
+            // 
+            // BoxOid1
+            // 
+            BoxOid1.Anchor = AnchorStyles.None;
+            BoxOid1.FormattingEnabled = true;
+            BoxOid1.Items.AddRange(new object[] { "BoxOid1" });
+            BoxOid1.Location = new Point(376, 206);
+            BoxOid1.Name = "BoxOid1";
+            BoxOid1.Size = new Size(181, 23);
+            BoxOid1.TabIndex = 11;
             // 
             // Form1
             // 
@@ -161,8 +163,8 @@ namespace ApplicationSNMP
             AutoScaleMode = AutoScaleMode.Font;
             AutoScroll = true;
             ClientSize = new Size(935, 531);
+            Controls.Add(BoxOid1);
             Controls.Add(LabelOid);
-            Controls.Add(TextBoxOid);
             Controls.Add(label2);
             Controls.Add(label1);
             Controls.Add(TextBoxCommunity);
@@ -186,7 +188,6 @@ namespace ApplicationSNMP
         private TextBox TextBoxCommunity;
         private Label label1;
         private Label label2;
-        private TextBox TextBoxOid;
         private Label LabelOid;
         private ToolStripMenuItem eXitToolStripMenuItem;
         private MenuStrip menuStrip1;
@@ -194,5 +195,6 @@ namespace ApplicationSNMP
         private ToolStripMenuItem testToolStripMenuItem;
         private ToolStripMenuItem affichageToolStripMenuItem;
         private ToolStripMenuItem plaineÉcranToolStripMenuItem;
+        private ComboBox BoxOid1;
     }
 }
