@@ -12,9 +12,6 @@ namespace ApplicationSNMP
     public partial class Form1 : Form
     {
 
-
-        private Rectangle orignalFormSize;
-
         // Déclaration du logger en tant que membre de classe
         private static readonly ILog log = LogManager.GetLogger(typeof(Form1));
 
@@ -22,17 +19,21 @@ namespace ApplicationSNMP
         {
             InitializeComponent();
 
-            // Initialisation de log4net
-            log4net.Config.XmlConfigurator.Configure(new System.IO.FileInfo("log4net.config"));
-
+            // Liaison de la source de données à la ComboBox
             BoxOid1.DataSource = oidMappings;
             BoxOid1.DisplayMember = "Name"; // Afficher les noms des OID dans la ComboBox
             BoxOid1.ValueMember = "Oid"; // Utiliser les OID comme valeurs
-            BoxOid1.SelectedIndex = -1;
+            BoxOid1.SelectedIndex = -1; // Définir la sélection initiale sur aucun
 
-            //BoxOid1.SelectedIndexChanged += BoxOid1_SelectedIndexChanged;
+
+            // Initialisation de log4net
+            log4net.Config.XmlConfigurator.Configure(new System.IO.FileInfo("log4net.config"));
+
+
         }
-        private static IList<Variable>? QuerySnmp(string ipAddress, string community, ObjectIdentifier snmpOid)
+
+
+        private static IList<Variable>? QuerySnmp(string ipAddress, string community, string oidName)
         {
             var agentIpAddress = IPAddress.Parse(ipAddress);
             var port = 161; // Port SNMP par défaut
@@ -40,47 +41,64 @@ namespace ApplicationSNMP
 
             try
             {
+                // Recherche de l'OID correspondant au nom sélectionné
+                var selectedOid = oidMappings.FirstOrDefault(oid => oid.Name == oidName)?.Oid;
+
+                if (selectedOid == null)
+                {
+                    // Si aucun OID correspondant n'est trouvé, afficher un message d'erreur et retourner null
+                    MessageBox.Show("Aucun OID correspondant trouvé pour le nom sélectionné.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return null;
+                }
+
+                // Création de l'objet ObjectIdentifier à partir de l'OID sélectionné
+                var snmpOid = new ObjectIdentifier(selectedOid);
+                
+
                 // Utilisation de Messenger.Get pour obtenir des variables spécifiques
                 var variables = Messenger.Get(VersionCode.V2, target, new OctetString(community), new List<Variable> { new(snmpOid) }, 5000);
 
                 if (variables != null && variables.Any())
                 {
-                    // Retourner les informations récupérées, peut planter si l'information get (oid) n'est pas valide a regenerer la solution.
+                    // Retourner les informations récupérées
                     return variables;
                 }
                 else
                 {
-                    //Log si aucune réponse SNMP reçue ou peut-être dû à un OID incompréhensible de l'appareil (nvr;camera...)
+                    // Log si aucune réponse SNMP reçue
                     log.Warn("Aucune réponse SNMP reçue.");
                     return null;
                 }
             }
             catch (Lextm.SharpSnmpLib.Messaging.TimeoutException)
             {
-                // Log si la demande a expiré ou l'OID n'est pas valide
+                // Log si la demande a expiré
                 log.Error("La demande SNMP a expiré.");
 
-                // Affichez une MessageBox indiquant que le délai a expiré de la session.
+                // Afficher un message d'erreur pour le délai d'expiration
                 MessageBox.Show("La demande SNMP a expiré. Vérifiez les informations saisies et réessayez.", "Erreur de délai", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                 return null;
             }
-            catch (Exception ex) // Récupère l'info du délai Time qui est dépassée est affiche le box suivante:
+            catch (Exception ex)
             {
-                // Log des erreurs
+                // Log des autres erreurs
                 log.Error($"Erreur lors de la récupération des informations SNMP : {ex.Message}");
 
-                // Affichez une MessageBox pour d'autres erreurs (ici la box remonte lors d'une erreur IP ou communauté fausse ou introuvable).
+                // Afficher un message d'erreur pour les autres erreurs
                 MessageBox.Show($"Une erreur s'est produite lors de la récupération des informations SNMP : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                 return null;
             }
             finally
             {
-                // Log de fin de la méthode envoie vers fichiers logs.
-                log.Info($"QuerySnmp ended for IP: {ipAddress}, Community: {community}, OID: {snmpOid}");
+                // Log de fin de la méthode
+                log.Info($"QuerySnmp ended for IP: {ipAddress}, Community: {community}, OID Name: {oidName}");
             }
         }
+
+
+
 
         private async void Button1_Click_1(object sender, EventArgs e)
         {
@@ -90,31 +108,40 @@ namespace ApplicationSNMP
             // Validation des entrées
             if (string.IsNullOrWhiteSpace(ipAddress) || string.IsNullOrWhiteSpace(community))
             {
-                MessageBox.Show("Veuillez fournir une adresse IP et une communauté SNMP valides s'il vous plait .");
+                MessageBox.Show("Veuillez fournir une adresse IP et une communauté SNMP valides s'il vous plaît.");
                 return;
             }
 
             // Récupérer l'OID sélectionné dans la ComboBox
-            string? selectedOid = BoxOid1.SelectedItem?.ToString();
+            string selectedName = BoxOid1.SelectedItem?.ToString();
 
-            // Vérifier si un OID a été sélectionné sinon 
-            if (string.IsNullOrEmpty(selectedOid))
+            // Vérifier si un OID a été sélectionné
+            if (string.IsNullOrEmpty(selectedName))
             {
                 MessageBox.Show("Veuillez sélectionner un OID dans la liste.");
                 return;
             }
 
-            // Créer l'objet ObjectIdentifier à partir de l'OID sélectionné
-            var snmpOid = new ObjectIdentifier(selectedOid);
+            // Trouver l'OID correspondant au nom sélectionné
+            var mapping = oidMappings.FirstOrDefault(m => m.Name == selectedName);
+            if (mapping == null)
+            {
+                MessageBox.Show("Aucun OID correspondant trouvé pour le nom sélectionné.");
+                return;
+            }
+
+            // Créer l'objet ObjectIdentifier à partir de l'OID correspondant 
+            var snmpOid = new ObjectIdentifier(mapping.Oid);
 
             try
             {
                 // Utilisation d'un thread asynchrone pour éviter de bloquer l'interface utilisateur
-                var result = await Task.Run(() => QuerySnmp(ipAddress, community, snmpOid));
+                var result = await Task.Run(() => QuerySnmp(ipAddress, community, selectedName));
+
 
                 if (result != null && result.Any())
                 {
-                    // Traitez les variables individuelles dans la liste des ,
+                    // Traiter les variables individuelles dans la liste des variables
                     foreach (var variable in result)
                     {
                         MessageBox.Show($"La valeur de l'OID {variable.Id} est : {variable.Data}");
@@ -127,15 +154,15 @@ namespace ApplicationSNMP
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Erreur lors de la récupération des informations SNMP :( : {ex.Message}");
+                MessageBox.Show($"Erreur lors de la récupération des informations SNMP : {ex.Message}");
             }
         }
+
 
         public class OidMapping
         {
             public string Name { get; set; }
             public string Oid { get; set; }
-
             public OidMapping(string name, string oid)
             {
                 Name = name;
@@ -144,12 +171,15 @@ namespace ApplicationSNMP
         }
 
         // Dans votre classe Form1   ComboBoxOid
-        private List<OidMapping> oidMappings = new List<OidMapping>
-{
-    new OidMapping("SysNameClass", "1.3.6.1.4.1.1004849.2.1.2.7.0"),
-    new OidMapping("UpTime", "1.3.6.1.4.1.1004849.2.1.6.0"),
-    new OidMapping("HardwareRevision", "1.3.6.1.4.1.1004849.2.1.1.2.0"),
-};
+        private static List<OidMapping> oidMappings = new List<OidMapping>
+        {
+            new OidMapping("SysNameClass", "1.3.6.1.4.1.1004849.2.1.2.7.0"),
+            new OidMapping("UpTime", "1.3.6.1.4.1.1004849.2.1.6.0"),
+            new OidMapping("HardwareRevision", "1.3.6.1.4.1.1004849.2.1.1.2.0"),
+            new OidMapping("DeviceStatus", "1.3.6.1.4.1.1004849.2.1.2.8.0"),
+            new OidMapping("NomMachine", ".1.3.6.1.4.1.1004849.2.1.2.9.0"),
+            new OidMapping("IpVersion", ".1.3.6.1.4.1.1004849.2.2.2.3.0"),
+        };
 
 
         private void BoxOid1_SelectedIndexChanged(object sender, EventArgs e)
@@ -206,6 +236,5 @@ namespace ApplicationSNMP
     }
 }
 
-// voir ce qu'il ce passe lors de la recupérationd des info ps: ce qui ne va pas c'est la récuperation de information par exemple jenvoie une requete uptime le nvr recois bien l reponds en envoyent la question mes le programme dit au
-
-// Modifier la methode de récupération d'info snmp lors de la recup info du nvr vers le programme lors de l'affichage.s
+//Revoir la methode querySNMP car bug pouvenent vennir de la voir test en debbug selon test ajuster le code de methode QuerySNMP.
+//Test voir sur le button click1 si la fonction renvoie bien QuerySNMP.
