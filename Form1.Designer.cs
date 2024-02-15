@@ -157,7 +157,7 @@ namespace ApplicationSNMP
             BoxOid1.Size = new Size(181, 23);
             BoxOid1.TabIndex = 11;
             // 
-            // Form1
+            // Form1 a test td dgdgd "dtdhi"b
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
