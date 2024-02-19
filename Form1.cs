@@ -1,46 +1,41 @@
-using System;
 using Lextm.SharpSnmpLib;
 using Lextm.SharpSnmpLib.Messaging;
 using log4net;
-using System.Net;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ApplicationSNMP
 {
     public partial class Form1 : Form
     {
+        private static readonly Dictionary<string, string> oidMappings = new Dictionary<string, string>
+        {
+            { "SysNameClass", "1.3.6.1.4.1.1004849.2.1.2.7.0" },
+            { "uptime", "1.3.6.1.4.1.1004849.2.1.6.0" },
+            { "HardwareRevision", "1.3.6.1.4.1.1004849.2.1.1.2.0" },
+            { "DeviceStatus", "1.3.6.1.4.1.1004849.2.1.2.8.0" },
+            { "NomMachine", ".1.3.6.1.4.1.1004849.2.1.2.9.0" },
+            { "IpVersion", ".1.3.6.1.4.1.1004849.2.2.2.3.0" }
+        };
+
         private static readonly ILog log = LogManager.GetLogger(typeof(Form1));
 
         public Form1()
         {
             InitializeComponent();
-            InitializeOidMappings();
-            InitializeLogger();
+            InitializeOidDropdown();
         }
 
-        private void InitializeOidMappings()
+        private void InitializeOidDropdown()
         {
-            oidMappings = new List<OidMapping>
-            {
-                new OidMapping("SysNameClass", "1.3.6.1.4.1.1004849.2.1.2.7.0"),
-                new OidMapping("uptime", "1.3.6.1.4.1.1004849.2.1.6.0"),
-                new OidMapping("HardwareRevision", "1.3.6.1.4.1.1004849.2.1.1.2.0"),
-                new OidMapping("DeviceStatus", "1.3.6.1.4.1.1004849.2.1.2.8.0"),
-                new OidMapping("NomMachine", ".1.3.6.1.4.1.1004849.2.1.2.9.0"),
-                new OidMapping("IpVersion", ".1.3.6.1.4.1.1004849.2.2.2.3.0"),
-            };
-
-            BoxOid1.DataSource = oidMappings;
-            BoxOid1.DisplayMember = "Name";
-            BoxOid1.ValueMember = "Oid";
+            BoxOid1.DataSource = new BindingSource(oidMappings, null);
+            BoxOid1.DisplayMember = "Key";
+            BoxOid1.ValueMember = "Value";
             BoxOid1.SelectedIndex = -1;
-        }
-
-        private void InitializeLogger()
-        {
-            log4net.Config.XmlConfigurator.Configure(new System.IO.FileInfo("log4net.config"));
         }
 
         private async void Button1_Click_1(object sender, EventArgs e)
@@ -48,29 +43,21 @@ namespace ApplicationSNMP
             string ipAddress = TextBoxIPAddress.Text;
             string community = TextBoxCommunity.Text;
 
-            if (!IsValidIpAddress(ipAddress) || string.IsNullOrEmpty(community))
+            if (!IsValidIpAddress(ipAddress) || !IsValidCommunity(community))
             {
                 MessageBox.Show("Veuillez fournir une adresse IP et une communauté SNMP valides.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            string? selectedName = BoxOid1.SelectedItem?.ToString();
-
-            if (string.IsNullOrEmpty(selectedName))
+            if (BoxOid1.SelectedIndex == -1)
             {
                 MessageBox.Show("Veuillez sélectionner un OID dans la liste.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            var mapping = oidMappings.FirstOrDefault(m => m.Name == selectedName);
+            string selectedOid = (string)BoxOid1.SelectedValue;
 
-            if (mapping == null)
-            {
-                MessageBox.Show("Aucun OID correspondant trouvé pour le nom sélectionné.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            var result = await Task.Run(() => QuerySnmp(ipAddress, community, mapping.Oid));
+            var result = await Task.Run(() => QuerySnmp(ipAddress, community, selectedOid));
 
             if (result != null && result.Any())
             {
@@ -85,53 +72,47 @@ namespace ApplicationSNMP
             }
         }
 
-        private bool IsValidIpAddress(string ipAddress)
+        private static bool IsValidIpAddress(string ipAddress)
         {
             return IPAddress.TryParse(ipAddress, out _);
         }
 
-        private static IList<Variable>? QuerySnmp(string ipAddress, string community, string oid)
+        private static bool IsValidCommunity(string community)
         {
-            var agentIpAddress = IPAddress.Parse(ipAddress);
-            var port = 161;
-            var target = new IPEndPoint(agentIpAddress, port);
+            return !string.IsNullOrEmpty(community) && community.Length <= 20;
+        }
 
+        private static IList<Variable> QuerySnmp(string ipAddress, string community, string oid)
+        {
             try
             {
+                var agentIpAddress = IPAddress.Parse(ipAddress);
+                var port = 161; // Port SNMP par défaut
+                var target = new IPEndPoint(agentIpAddress, port);
+                var snmpOid = new ObjectIdentifier(oid);
+
                 var variables = Messenger.Get(
                     VersionCode.V2,
                     target,
                     new OctetString(community),
-                    new List<Variable> { new Variable(new ObjectIdentifier(oid)) },
+                    new List<Variable> { new Variable(snmpOid) },
                     5000
                 );
 
-                if (variables != null && variables.Any())
-                {
-                    return variables;
-                }
-                else
-                {
-                    log.Warn("Aucune réponse SNMP reçue.");
-                    return null;
-                }
+                return variables ?? Enumerable.Empty<Variable>().ToList();
             }
             catch (Lextm.SharpSnmpLib.Messaging.TimeoutException)
             {
                 log.Error("La demande SNMP a expiré.");
                 MessageBox.Show("La demande SNMP a expiré. Vérifiez les informations saisies et réessayez.", "Erreur de délai", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return null;
             }
             catch (Exception ex)
             {
                 log.Error($"Erreur lors de la récupération des informations SNMP : {ex.Message}");
                 MessageBox.Show($"Une erreur s'est produite lors de la récupération des informations SNMP : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return null;
             }
-            finally
-            {
-                log.Info($"QuerySnmp ended for IP: {ipAddress}, Community: {community}, OID: {oid}");
-            }
+
+            return null;
         }
 
         private void eXitToolStripMenuItem_Click(object sender, EventArgs e)
@@ -141,14 +122,7 @@ namespace ApplicationSNMP
 
         private void UpdateFullScreenMenuItemText()
         {
-            if (this.WindowState == FormWindowState.Maximized)
-            {
-                plaineÉcranToolStripMenuItem.Text = "Quitter le plein écran";
-            }
-            else
-            {
-                plaineÉcranToolStripMenuItem.Text = "Plein écran";
-            }
+            plaineÉcranToolStripMenuItem.Text = (this.WindowState == FormWindowState.Maximized) ? "Quitter le plein écran" : "Plein écran";
         }
 
         private void plaineÉcranToolStripMenuItem_Click(object sender, EventArgs e)
@@ -156,20 +130,5 @@ namespace ApplicationSNMP
             this.WindowState = (this.WindowState == FormWindowState.Maximized) ? FormWindowState.Normal : FormWindowState.Maximized;
             UpdateFullScreenMenuItemText();
         }
-
-        public class OidMapping
-        {
-            public string Name { get; set; }
-            public string Oid { get; set; }
-
-            public OidMapping(string name, string oid)
-            {
-                Name = name;
-                Oid = oid;
-                
-            }
-        }
-
-        private List<OidMapping> oidMappings;
     }
 }

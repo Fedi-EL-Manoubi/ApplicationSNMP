@@ -38,8 +38,6 @@ namespace ApplicationSNMP
             LabelOid = new Label();
             eXitToolStripMenuItem = new ToolStripMenuItem();
             menuStrip1 = new MenuStrip();
-            fichierToolStripMenuItem = new ToolStripMenuItem();
-            testToolStripMenuItem = new ToolStripMenuItem();
             affichageToolStripMenuItem = new ToolStripMenuItem();
             plaineÉcranToolStripMenuItem = new ToolStripMenuItem();
             BoxOid1 = new ComboBox();
@@ -112,25 +110,12 @@ namespace ApplicationSNMP
             // 
             // menuStrip1
             // 
-            menuStrip1.Items.AddRange(new ToolStripItem[] { eXitToolStripMenuItem, fichierToolStripMenuItem, affichageToolStripMenuItem });
+            menuStrip1.Items.AddRange(new ToolStripItem[] { eXitToolStripMenuItem, affichageToolStripMenuItem });
             menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
             menuStrip1.Size = new Size(935, 24);
             menuStrip1.TabIndex = 10;
             menuStrip1.Text = "menuStrip1";
-            // 
-            // fichierToolStripMenuItem
-            // 
-            fichierToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { testToolStripMenuItem });
-            fichierToolStripMenuItem.Name = "fichierToolStripMenuItem";
-            fichierToolStripMenuItem.Size = new Size(54, 20);
-            fichierToolStripMenuItem.Text = "Fichier";
-            // 
-            // testToolStripMenuItem
-            // 
-            testToolStripMenuItem.Name = "testToolStripMenuItem";
-            testToolStripMenuItem.Size = new Size(94, 22);
-            testToolStripMenuItem.Text = "Test";
             // 
             // affichageToolStripMenuItem
             // 
@@ -142,7 +127,7 @@ namespace ApplicationSNMP
             // plaineÉcranToolStripMenuItem
             // 
             plaineÉcranToolStripMenuItem.Name = "plaineÉcranToolStripMenuItem";
-            plaineÉcranToolStripMenuItem.Size = new Size(132, 22);
+            plaineÉcranToolStripMenuItem.Size = new Size(180, 22);
             plaineÉcranToolStripMenuItem.Text = "Plein écran";
             plaineÉcranToolStripMenuItem.TextAlign = ContentAlignment.MiddleLeft;
             plaineÉcranToolStripMenuItem.Click += plaineÉcranToolStripMenuItem_Click;
@@ -157,7 +142,7 @@ namespace ApplicationSNMP
             BoxOid1.Size = new Size(181, 23);
             BoxOid1.TabIndex = 11;
             // 
-            // Form1 a test td dgdgd "dtdhi"b
+            // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -191,8 +176,6 @@ namespace ApplicationSNMP
         private Label LabelOid;
         private ToolStripMenuItem eXitToolStripMenuItem;
         private MenuStrip menuStrip1;
-        private ToolStripMenuItem fichierToolStripMenuItem;
-        private ToolStripMenuItem testToolStripMenuItem;
         private ToolStripMenuItem affichageToolStripMenuItem;
         private ToolStripMenuItem plaineÉcranToolStripMenuItem;
         private ComboBox BoxOid1;
