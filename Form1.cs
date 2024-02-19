@@ -25,7 +25,7 @@ namespace ApplicationSNMP
             oidMappings = new List<OidMapping>
             {
                 new OidMapping("SysNameClass", "1.3.6.1.4.1.1004849.2.1.2.7.0"),
-                new OidMapping("UpTime", "1.3.6.1.4.1.1004849.2.1.6.0"),
+                new OidMapping("uptime", "1.3.6.1.4.1.1004849.2.1.6.0"),
                 new OidMapping("HardwareRevision", "1.3.6.1.4.1.1004849.2.1.1.2.0"),
                 new OidMapping("DeviceStatus", "1.3.6.1.4.1.1004849.2.1.2.8.0"),
                 new OidMapping("NomMachine", ".1.3.6.1.4.1.1004849.2.1.2.9.0"),
